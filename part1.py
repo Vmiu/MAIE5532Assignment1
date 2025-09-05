@@ -23,12 +23,11 @@ def create_model():
     model = keras.Sequential([
 
         # TODO: Implement the required layers
-
-        # Layer 0: Input layer
-        tf.keras.Input(shape=(1, 28, 28)),
+        
+        tf.keras.layers.Input(shape=(28, 28, 1)),
         
         # Layer 1: Conv2D with 8 filters, 3x3 kernel, ReLU activation
-        tf.keras.layers.Conv2D(filters=8,kernel_size=3,activation="relu"),
+        tf.keras.layers.Conv2D(filters=8, kernel_size=3, activation="relu"),
         
         # Layer 2: MaxPool2D with 2x2 pool size
         tf.keras.layers.MaxPool2D(pool_size=2),
@@ -40,11 +39,10 @@ def create_model():
         tf.keras.layers.Dense(units=16, activation="relu"),
 
         # Layer 5: Dense with 10 units (output layer)
-        tf.keras.layers.Dense(units=10)
+        tf.keras.layers.Dense(units=10, activation="softmax")
         
     ])
 
-   
 
     # Compile the model
 
@@ -90,9 +88,8 @@ def load_and_preprocess_data():
     x_test = x_test.astype('float32') / 255.0
     
     # Reshape data for CNN input (add channel dimension)
-    # (60000,28,28) -> (60000,C,28,28)
-    x_train = np.expand_dims(x_train, axis=1)
-    x_test = np.expand_dims(x_test, axis=1)
+    x_train = np.expand_dims(x_train, axis=-1)
+    x_test = np.expand_dims(x_test, axis=-1)
 
     return (x_train, y_train, x_test, y_test)
 
