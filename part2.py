@@ -93,12 +93,25 @@ def test_tflite_accuracy(tflite_model_data, x_test, y_test):
     """
 
     # TODO: Create TensorFlow Lite interpreter
+    interpreter = tf.lite.Interpreter(model_content=tflite_model_data)
+    interpreter.allocate_tensors()
 
     # TODO: Run inference on test data
+    input_details = interpreter.get_input_details()[0]
+    output_details = interpreter.get_output_details()[0]
+    correct_predictions = 0
+    for i in range(x_test.shape[0]):
+        input_data = x_test[i:i+1]
+        interpreter.set_tensor(input_details['index'], input_data)
+        interpreter.invoke()
+        output_data = interpreter.get_tensor(output_details['index'])
+        predicted_class = tf.argmax(output_data, axis=1).numpy()[0]
+        if predicted_class == y_test[i]:
+            correct_predictions += 1
 
     # TODO: Calculate and return accuracy
-
-    pass
+    accuracy = correct_predictions / x_test.shape[0]
+    return accuracy
 
  
 
@@ -142,16 +155,16 @@ if __name__ == "__main__":
 
     # (You'll need to load test data again)
 
-    # x_train, y_train, x_test, y_test = load_and_preprocess_data()
+    x_train, y_train, x_test, y_test = load_and_preprocess_data()
 
    
 
-    # tflite_accuracy = test_tflite_accuracy(tflite_model, x_test, y_test)
+    tflite_accuracy = test_tflite_accuracy(tflite_model, x_test, y_test)
 
-    # tflite_quantized_accuracy = test_tflite_accuracy(tflite_quantized_model, x_test, y_test)
+    tflite_quantized_accuracy = test_tflite_accuracy(tflite_quantized_model, x_test, y_test)
 
    
 
-    # print(f"TensorFlow Lite accuracy: {tflite_accuracy:.4f}")
+    print(f"TensorFlow Lite accuracy: {tflite_accuracy:.4f}")
 
-    # print(f"TensorFlow Lite quantized accuracy: {tflite_quantized_accuracy:.4f}")
+    print(f"TensorFlow Lite quantized accuracy: {tflite_quantized_accuracy:.4f}")

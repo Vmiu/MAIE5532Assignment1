@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     # Save the trained model
 
-    model.save('mnist_cnn_model.keras')
+    model.save('mnist_cnn_model.h5')
 
    
 
