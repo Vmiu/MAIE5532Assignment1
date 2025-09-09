@@ -1,6 +1,6 @@
 import tensorflow as tf
-
- 
+from part1 import load_and_preprocess_data
+import os
 
 def convert_to_tflite(model_path, quantize=False):
 
@@ -25,14 +25,19 @@ def convert_to_tflite(model_path, quantize=False):
     """
 
     # TODO: Load the saved model
+    model = tf.keras.models.load_model(model_path)
 
     # TODO: Create TensorFlow Lite converter
-
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    
     # TODO: Apply quantization if requested
-
+    if quantize:
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        
     # TODO: Convert model and return tflite data
-
-    pass
+    tflite_model = converter.convert()
+    
+    return tflite_model
 
  
 
@@ -53,10 +58,15 @@ def analyze_model_size(tf_model_path, tflite_model_data):
     """
 
     # TODO: Calculate file sizes and compression ratio
-
+    model_size = os.stat(tf_model_path).st_size
+    tflite_model_size = len(tflite_model_data)
+    compression_ratio = tflite_model_size/model_size
     # TODO: Print comparison results
+    print(f"original model size = {model_size} bytes")
+    print(f"tflite_model size = {tflite_model_size} bytes")
+    print(f"compression ratio = {compression_ratio:.2f}")
 
-    pass
+    return
 
  
 
@@ -132,16 +142,16 @@ if __name__ == "__main__":
 
     # (You'll need to load test data again)
 
-    x_train, y_train, x_test, y_test = load_and_preprocess_data()
+    # x_train, y_train, x_test, y_test = load_and_preprocess_data()
 
    
 
-    tflite_accuracy = test_tflite_accuracy(tflite_model, x_test, y_test)
+    # tflite_accuracy = test_tflite_accuracy(tflite_model, x_test, y_test)
 
-    tflite_quantized_accuracy = test_tflite_accuracy(tflite_quantized_model, x_test, y_test)
+    # tflite_quantized_accuracy = test_tflite_accuracy(tflite_quantized_model, x_test, y_test)
 
    
 
-    print(f"TensorFlow Lite accuracy: {tflite_accuracy:.4f}")
+    # print(f"TensorFlow Lite accuracy: {tflite_accuracy:.4f}")
 
-    print(f"TensorFlow Lite quantized accuracy: {tflite_quantized_accuracy:.4f}")
+    # print(f"TensorFlow Lite quantized accuracy: {tflite_quantized_accuracy:.4f}")
