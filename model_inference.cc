@@ -1,3 +1,7 @@
+// # Generate C++ model data
+
+// xxd -i mnist_model_quantized.tflite > model_data.cc
+
 // model_inference.cc
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
@@ -29,13 +33,6 @@ tflite::MicroInterpreter* setup_model() {
 
     // - Load model from data
     const tflite::Model* model = tflite::GetModel(mnist_model_quantized_tflite);
-    if (model->version() != TFLITE_SCHEMA_VERSION) {
-        error_reporter->Report(
-            "Model provided is schema version %d not equal "
-            "to supported version %d.",
-            model->version(), TFLITE_SCHEMA_VERSION);
-        return nullptr;
-    }
 
     // - Create ops resolver and add operations
     static tflite::MicroMutableOpResolver<11> resolver;
@@ -55,65 +52,44 @@ tflite::MicroInterpreter* setup_model() {
     static tflite::MicroInterpreter static_interpreter(
       model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
   
-    // Print model tensor information for debugging
-    error_reporter->Report("Model has %d tensors", model->subgraphs()->Get(0)->tensors()->size());
-    
-    // Get input tensor details before allocation
-    TfLiteStatus allocate_status = static_interpreter.AllocateTensors();
-    if (allocate_status != kTfLiteOk) {
-        error_reporter->Report("AllocateTensors() failed with status: %d", allocate_status);
-        
-        // Get input tensor for debugging
-        TfLiteTensor* input = static_interpreter.input(0);
-        if (input != nullptr) {
-            error_reporter->Report("Input tensor type: %d, quantization: %d", 
-                                 input->type, input->quantization.type);
-        }
-        return nullptr;
-    }
+    // Print model size information for debugging
+    printf("Model size: %d bytes\n", mnist_model_quantized_tflite_len);
+    printf("Arena size: %d bytes\n", kTensorArenaSize);
+    printf("Arena address: %p\n", tensor_arena);
 
-    // Verify input tensor details after allocation
-    TfLiteTensor* input = static_interpreter.input(0);
-    if (input == nullptr) {
-        error_reporter->Report("Failed to get input tensor");
-        return nullptr;
-    }
-
-    error_reporter->Report("Input tensor dims: %d x %d", 
-                          input->dims->data[1], input->dims->data[2]);
-    
     return &static_interpreter;
 }
  
 
 // TODO: Implement run_inference() function 
 int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_data, size_t input_size) {
-
-    // - Copy input data to model input tensor
     TfLiteTensor* input = interpreter->input(0);
+    TfLiteTensor* output = interpreter->output(0);
+    printf("Input bytes: %zu (expected: %zu)\n", input->bytes,input_size);
+    printf("Input type: %d (expected: %d for uint8)\n",
+    input->type, kTfLiteUInt8);
     if (input->bytes != input_size) {
-        printf("Input size mismatch: expected %d, got %zu\n", input->bytes, input_size);
-        return -1;
+    printf("ERROR: Input size mismatch!\n");
+    return -1;
     }
-    
-    // Check input tensor type and quantization
-    if (input->type != kTfLiteUInt8) {
-        printf("Input tensor type mismatch: expected UInt8, got %d\n", input->type);
-        return -1;
+
+    // - Allocate tensors
+    if (interpreter->AllocateTensors() != kTfLiteOk) {
+        printf("FAILED: Tensor allocation\n");
+        return -1; // Error: allocation failed
     }
+    printf("SUCCESS: Tensor allocated\n");
     
-    // Copy and quantize input data
-    for (size_t i = 0; i < input_size; i++) {
-        input->data.uint8[i] = input_data[i];
+    // - Get input tensor
+    if (interpreter->input(0)->type != kTfLiteUInt8) {
+        printf("Input tensor type mismatch: expected UInt8\n");
+        return -1;
     }
 
     // - Invoke interpreter
     if (interpreter->Invoke() != kTfLiteOk) {
         return -1; // Error: inference failed
     }
-
-    // - Read output from output tensor
-    TfLiteTensor* output = interpreter->output(0);
 
     // - Return predicted class
     int predicted_class = 0;
@@ -126,6 +102,8 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
             predicted_class = i;
         }
     }
+    
+    printf("Max score: %d\n", max_score);
 
     return predicted_class;
 }

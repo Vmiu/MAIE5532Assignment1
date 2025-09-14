@@ -1,6 +1,7 @@
 import tensorflow as tf
 from part1 import load_and_preprocess_data
 import os
+import numpy as np
 
 def convert_to_tflite(model_path, quantize=False):
 
@@ -33,6 +34,16 @@ def convert_to_tflite(model_path, quantize=False):
     # TODO: Apply quantization if requested
     if quantize:
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+        converter.inference_input_type = tf.uint8
+        converter.inference_output_type = tf.uint8
+        
+        # Create a representative dataset from training data
+        _, _, x_test, _ = load_and_preprocess_data()
+        def representative_dataset():
+            for data in tf.data.Dataset.from_tensor_slices(x_test).batch(1).take(100):
+                yield [tf.dtypes.cast(data, tf.float32)]
+        converter.representative_dataset = representative_dataset
         
     # TODO: Convert model and return tflite data
     tflite_model = converter.convert()
@@ -99,9 +110,21 @@ def test_tflite_accuracy(tflite_model_data, x_test, y_test):
     # TODO: Run inference on test data
     input_details = interpreter.get_input_details()[0]
     output_details = interpreter.get_output_details()[0]
+    print(f"input_type:{input_details['dtype']}, Quant:{input_details['quantization']}")
+    print(f"output_type:{output_details['dtype']}, Quant:{output_details['quantization']}")
     correct_predictions = 0
+    
+    # Check if the model is quantized
+    is_quantized = input_details['dtype'] == np.uint8
+    
+    if is_quantized:
+        input_scale, input_zero_point = input_details["quantization"]
+        
     for i in range(x_test.shape[0]):
         input_data = x_test[i:i+1]
+        if is_quantized:
+            input_data = input_data / input_scale + input_zero_point
+            input_data = input_data.astype(np.uint8)
         interpreter.set_tensor(input_details['index'], input_data)
         interpreter.invoke()
         output_data = interpreter.get_tensor(output_details['index'])
@@ -119,13 +142,13 @@ if __name__ == "__main__":
 
     # Convert model without quantization
 
-    tflite_model = convert_to_tflite('mnist_cnn_model.h5', quantize=False)
+    tflite_model = convert_to_tflite('mnist_cnn_model.keras', quantize=False)
 
    
 
     # Convert model with quantization
 
-    tflite_quantized_model = convert_to_tflite('mnist_cnn_model.h5', quantize=True)
+    tflite_quantized_model = convert_to_tflite('mnist_cnn_model.keras', quantize=True)
 
    
 
@@ -145,9 +168,9 @@ if __name__ == "__main__":
 
     # Analyze model sizes
 
-    analyze_model_size('mnist_cnn_model.h5', tflite_model)
+    analyze_model_size('mnist_cnn_model.keras', tflite_model)
 
-    analyze_model_size('mnist_cnn_model.h5', tflite_quantized_model)
+    analyze_model_size('mnist_cnn_model.keras', tflite_quantized_model)
 
    
 
