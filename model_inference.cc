@@ -63,16 +63,7 @@ tflite::MicroInterpreter* setup_model() {
 
 // TODO: Implement run_inference() function 
 int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_data, size_t input_size) {
-    TfLiteTensor* input = interpreter->input(0);
-    TfLiteTensor* output = interpreter->output(0);
-    printf("Input bytes: %zu (expected: %zu)\n", input->bytes,input_size);
-    printf("Input type: %d (expected: %d for uint8)\n",
-    input->type, kTfLiteUInt8);
-    if (input->bytes != input_size) {
-    printf("ERROR: Input size mismatch!\n");
-    return -1;
-    }
-
+    
     // - Allocate tensors
     if (interpreter->AllocateTensors() != kTfLiteOk) {
         printf("FAILED: Tensor allocation\n");
@@ -80,16 +71,36 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
     }
     printf("SUCCESS: Tensor allocated\n");
     
-    // - Get input tensor
-    if (interpreter->input(0)->type != kTfLiteUInt8) {
-        printf("Input tensor type mismatch: expected UInt8\n");
-        return -1;
+    TfLiteTensor* input = interpreter->input(0);
+    TfLiteTensor* output = interpreter->output(0);
+
+    // Print tensor details for debugging
+    printf("Input bytes: %zu (expected: %zu)\n", input->bytes,input_size);
+    printf("output bytes: %zu\n", output->bytes);
+
+    printf("Input type=%d scale=%.6f zp=%d bytes=%zu\n",
+       input->type, input->params.scale, input->params.zero_point, input->bytes);
+    printf("Output type=%d scale=%.6f zp=%d bytes=%zu\n",
+       output->type, output->params.scale, output->params.zero_point, output->bytes);
+    if (input->bytes != input_size) {
+       printf("Input size mismatch: expected %zu, got %d\n", input_size, input->bytes);
+        return -1; // Error: size mismatch
     }
+    if (output->type != kTfLiteUInt8) {
+        printf("Output tensor type mismatch: expected UInt8\n");
+        return -1; // Error: type mismatch
+    }
+
+    // - Copy input data to input tensor
+    memcpy(input->data.uint8, input_data, input_size);
 
     // - Invoke interpreter
     if (interpreter->Invoke() != kTfLiteOk) {
+        printf("FAILED: Invoke\n");
         return -1; // Error: inference failed
     }
+
+    
 
     // - Return predicted class
     int predicted_class = 0;
@@ -103,7 +114,7 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
         }
     }
     
-    printf("Max score: %d\n", max_score);
+    printf("Max score: %f\n", max_score);
 
     return predicted_class;
 }
@@ -121,18 +132,13 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
 
  
 
-void create_test_image(uint8_t* image) {
-  // Initialize to all zeros (black)
-  memset(image, 0, 28 * 28);
-  
-  // Draw a simple digit (e.g., number 7)
-  for (int i = 5; i < 20; i++) {
-    image[i + 28 * 5] = 255;  // Horizontal line at the top
-  }
-  for (int j = 6; j < 23; j++) {
-    image[18 + 28 * j] = 255; // Vertical line on the right
-  }
+void create_test_image() {
+    // Load 5 sample from MNIST test set
+
+    // Normalize and quantize to uint8
+    // Store in test_image array
 }
+    
 
 int main() {
 
@@ -144,7 +150,6 @@ int main() {
         return 1;
     }
     // Create test input (28x28 image data)
-    uint8_t test_image[28 * 28];
     create_test_image(test_image);
 
     // Run inference

@@ -5,7 +5,7 @@ ifneq (3.82,$(firstword $(sort $(MAKE_VERSION) 3.82)))
   $(error "Requires gmake version 3.82 or later (current is $(MAKE_VERSION)). Please use 'gmake' instead of 'make'")
 endif
 
-# Compiler settings (matching successful compile_part3.sh)
+# Compiler settings
 CXX := clang++
 CXXFLAGS := -std=c++11 -O3 -Wall \
            -DTF_LITE_STATIC_MEMORY \
@@ -14,7 +14,7 @@ CXXFLAGS := -std=c++11 -O3 -Wall \
            -DTF_LITE_USE_GLOBAL_MAX
 LDFLAGS := -lm
 
-# Include paths (exactly matching compile_part3.sh)
+# Include paths
 INCLUDES := \
     -I. \
     -I../tensorflow \
@@ -27,12 +27,12 @@ INCLUDES := \
     -Itensorflow/tensorflow/lite/micro/tools/make/downloads/gemmlowp \
     -Itensorflow/tensorflow/lite/micro/tools/make/downloads/ruy
 
-# Application source files (correct filenames)
+# Application source files
 APP_SRCS := \
     model_inference.cc \
     model_data.cc
 
-# Core TFLM source files (exactly matching compile_part3.sh)
+# Core TFLM source files
 CORE_SRCS := \
     tensorflow/tensorflow/lite/micro/micro_error_reporter.cc \
     tensorflow/tensorflow/lite/micro/micro_interpreter.cc \
@@ -73,28 +73,7 @@ ALL_SRCS := $(APP_SRCS) $(CORE_SRCS) $(KERNEL_SRCS)
 # Target executable
 TARGET := model_inference
 
-# Default target
-all: check-dependencies $(TARGET)
-
-# Check dependencies
-check-dependencies:
-	@echo "🔍 Checking TensorFlow Lite Micro dependencies..."
-	@if [ ! -d "tensorflow/tensorflow/lite" ]; then \
-		echo "❌ TensorFlow source structure not found"; \
-		echo "📥 Please run: mkdir -p tensorflow && cd tensorflow && git clone https://github.com/tensorflow/tensorflow.git"; \
-		echo "📥 Then: cd tensorflow && git checkout v2.4.0"; \
-		exit 1; \
-	fi
-	@echo "✅ TensorFlow v2.4.0 source found"
-	@if [ ! -d "tensorflow/tensorflow/lite/micro/tools/make/downloads" ]; then \
-		echo "❌ TensorFlow dependencies not downloaded"; \
-		echo "📥 Please run: cd tensorflow && gmake -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads"; \
-		exit 1; \
-	fi
-	@echo "✅ TensorFlow Lite Micro dependencies found"
-	@echo "✅ Using gmake version: $(MAKE_VERSION)"
-
-# Build target (exactly matching compile_part3.sh logic)
+# Build target
 $(TARGET): check-dependencies $(APP_SRCS)
 
 # Build target
@@ -112,27 +91,7 @@ run: $(TARGET)
 
 # Clean generated files
 clean:
-	@echo "🧹 Cleaning generated files..."
 	rm -f $(TARGET)
-	@echo "✅ Clean complete"
-
-# Information
-info:
-	@echo "=== TensorFlow Lite Micro Build Configuration ==="
-	@echo "Make tool: gmake (GNU Make $(MAKE_VERSION))"
-	@echo "Compiler: $(CXX)"
-	@echo "Target: $(TARGET)"
-	@echo "Source files: $(words $(ALL_SRCS)) files"
-	@echo ""
-	@echo "=== Available Commands ==="
-	@echo "gmake              - Build the application"
-	@echo "gmake run          - Build and run the application"
-	@echo "gmake clean        - Clean generated files"
-	@echo "gmake info         - Show this information"
-	@echo ""
-	@echo "⚠️  Important: Use 'gmake' not 'make' (Xcode make is too old)"
-
-# Help target
-help: info
+	@echo "Clean complete"
 
 .PHONY: all run clean check-dependencies info help
