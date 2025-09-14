@@ -13,3 +13,14 @@ wheels/
 *.keras
 *.h5
 *.tflite
+
+# Tensorflow files
+tensorflow-2.4.1/
+
+# vscode settings
+launch.json
+tasks.json
+c_cpp_properties.json
+
+# executables
+*.exe
