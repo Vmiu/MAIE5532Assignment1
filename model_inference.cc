@@ -1,5 +1,3 @@
-Create a C++ implementation that uses the converted model:
-
 // model_inference.cc
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
@@ -12,12 +10,12 @@ Create a C++ implementation that uses the converted model:
 
 #include "tensorflow/lite/version.h"
 
- 
+// Define constants and global variables
+const int kTensorArenaSize = 60 * 1024;
+uint8_t tensor_arena[kTensorArenaSize];
 
 // Include your model data
-
 extern const unsigned char mnist_model_quantized_tflite[];
-
 extern const unsigned int mnist_model_quantized_tflite_len;
 
  
@@ -39,18 +37,51 @@ tflite::MicroInterpreter* setup_model() {
         return nullptr;
     }
 
-    // - Create ops resolver
-    static tflite::AllOpsResolver resolver;
+    // - Create ops resolver and add operations
+    static tflite::MicroMutableOpResolver<11> resolver;
+    resolver.AddShape();
+    resolver.AddConv2D();
+    resolver.AddMaxPool2D();
+    resolver.AddFullyConnected();
+    resolver.AddReshape();
+    resolver.AddSoftmax();
+    resolver.AddQuantize();
+    resolver.AddDequantize();
+    resolver.AddRelu();
+    resolver.AddStridedSlice();
+    resolver.AddPack();
 
     // - Set up interpreter with memory arena
     static tflite::MicroInterpreter static_interpreter(
       model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
   
-    if (static_interpreter.AllocateTensors() != kTfLiteOk) {
-        error_reporter->Report("AllocateTensors() failed");
+    // Print model tensor information for debugging
+    error_reporter->Report("Model has %d tensors", model->subgraphs()->Get(0)->tensors()->size());
+    
+    // Get input tensor details before allocation
+    TfLiteStatus allocate_status = static_interpreter.AllocateTensors();
+    if (allocate_status != kTfLiteOk) {
+        error_reporter->Report("AllocateTensors() failed with status: %d", allocate_status);
+        
+        // Get input tensor for debugging
+        TfLiteTensor* input = static_interpreter.input(0);
+        if (input != nullptr) {
+            error_reporter->Report("Input tensor type: %d, quantization: %d", 
+                                 input->type, input->quantization.type);
+        }
         return nullptr;
     }
 
+    // Verify input tensor details after allocation
+    TfLiteTensor* input = static_interpreter.input(0);
+    if (input == nullptr) {
+        error_reporter->Report("Failed to get input tensor");
+        return nullptr;
+    }
+
+    error_reporter->Report("Input tensor dims: %d x %d", 
+                          input->dims->data[1], input->dims->data[2]);
+    
     return &static_interpreter;
 }
  
@@ -61,9 +92,20 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
     // - Copy input data to model input tensor
     TfLiteTensor* input = interpreter->input(0);
     if (input->bytes != input_size) {
-        return -1; // Error: input size mismatch
+        printf("Input size mismatch: expected %d, got %zu\n", input->bytes, input_size);
+        return -1;
     }
-    memcpy(input->data.uint8, input_data, input_size);
+    
+    // Check input tensor type and quantization
+    if (input->type != kTfLiteUInt8) {
+        printf("Input tensor type mismatch: expected UInt8, got %d\n", input->type);
+        return -1;
+    }
+    
+    // Copy and quantize input data
+    for (size_t i = 0; i < input_size; i++) {
+        input->data.uint8[i] = input_data[i];
+    }
 
     // - Invoke interpreter
     if (interpreter->Invoke() != kTfLiteOk) {
@@ -100,10 +142,6 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
 // - Print results
 
  
-
-const int kTensorArenaSize = 60 * 1024;
-
-uint8_t tensor_arena[kTensorArenaSize];
 
 void create_test_image(uint8_t* image) {
   // Initialize to all zeros (black)
