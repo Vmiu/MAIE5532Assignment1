@@ -197,3 +197,4 @@ python3.13 part2_tflite_conversion.py  # Convert to TFLite
 ![Part 3 - Micro Deployment (1)](pic/part3-1.png)
 ![Part 3 - Micro Deployment (2)](pic/part3-2.png)
 ![Part 3 - Micro Deployment (3)](pic/part3-3.png)
+![Part 3 - Micro Deployment (4)](pic/part3-4.png)
