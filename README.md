@@ -18,7 +18,9 @@
 MAIE5532Assignment1/
 ├── README.md                   # This file
 ├── Makefile                    # Build configuration
-├── part3_micro_deployment.cc   # Main inference application
+├── part1_tensorflow.py         # Part1 code
+├── part2_tflite_conversion.py  # Part2 code
+├── part3_micro_deployment.cc   # Part3 code
 ├── model_data.cc               # MNIST model data (generated)
 ├── .gitignore                  # Git ignore patterns
 ├── requirements.txt            # Python dependencies (if any)
@@ -73,10 +75,13 @@ brew install make
 Navigate to your project directory and set up the Python environment:
 ```bash
 git clone https://github.com/Vmiu/MAIE5532Assignment1.git
-cd /Users/k/Documents/MV/MAIE5532Assignment1
+cd MAIE5532Assignment1
 
 # Install Python dependencies using uv
 uv sync
+
+# Install Python dependencies using pip
+pip3 install -r requirements.txt
 ```
 
 ### 7. **Set up TensorFlow Lite Micro**
@@ -116,9 +121,13 @@ python3.13 -c "import tensorflow as tf; print('TensorFlow version:', tf.__versio
 
 ### 9. **Build and Run the Project**
 ```bash
-# run Python scripts
+# run Python scripts (with uv)
 uv run part1_tensorflow.py
 uv run part2_tflite_conversion.py
+
+# run Python scripts
+python3 part1_tensorflow.py
+python3 part2_tflite_conversion.py
 
 # Build model_data.cc
 xxd -i mnist_model_quantized.tflite > model_data.cc
