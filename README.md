@@ -1,3 +1,6 @@
+
+# MAIE5532Assignment1
+
 ## Project Overview
 
 - **Model**: TFLM Model(26,888 bytes)
@@ -6,15 +9,15 @@
 ## Prerequisites
 
 ### System Requirements
+
 - **Operating System**: macOS
 - **Compiler**: Clang++
 - **Make**: GNU Make 3.82+
 - **Python**: 3.13
 
-
 ## Project Structure
 
-```
+```bash
 MAIE5532Assignment1/
 ├── README.md                   # This file
 ├── Makefile                    # Build configuration
@@ -33,19 +36,24 @@ MAIE5532Assignment1/
 ## Installation Guide for macOS
 
 ### 1. **System Requirements Check**
+
 First, verify your system meets the requirements:
+
 - macOS (you're already on this)
 - Python 3.13
 - Clang++ compiler (comes with Xcode Command Line Tools)
 - GNU Make 3.82+
 
 ### 2. **Install Xcode Command Line Tools**
+
 ```bash
 xcode-select --install
 ```
 
 ### 3. **Install Python 3.13**
+
 Since the project requires Python 3.13, install it using Homebrew:
+
 ```bash
 # Install Homebrew if you don't have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -55,7 +63,9 @@ brew install python@3.13
 ```
 
 ### 4. **Install UV (Python Package Manager)(*optional*)**
+
 The project uses `uv` for dependency management:
+
 ```bash
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -66,13 +76,17 @@ source ~/.zshrc
 ```
 
 ### 5. **Install GNU Make 3.82+**
+
 macOS comes with an older version of make, so install the newer version:
+
 ```bash
 brew install make
 ```
 
 ### 6. **Set up the Project Environment**
+
 Navigate to your project directory and set up the Python environment:
+
 ```bash
 git clone https://github.com/Vmiu/MAIE5532Assignment1.git
 cd MAIE5532Assignment1
@@ -85,7 +99,9 @@ pip3 install -r requirements.txt
 ```
 
 ### 7. **Set up TensorFlow Lite Micro**
+
 The project requires TensorFlow v2.4.0 source code. Follow these steps:
+
 ```bash
 # Clone TensorFlow v2.4.0 (if not already done)
 git clone https://github.com/tensorflow/tensorflow.git
@@ -104,7 +120,9 @@ cd ..
 ```
 
 ### 8. **Verify Installation**
+
 Test that everything is working:
+
 ```bash
 # Check Python version
 python3.13 --version
@@ -120,6 +138,7 @@ python3.13 -c "import tensorflow as tf; print('TensorFlow version:', tf.__versio
 ```
 
 ### 9. **Build and Run the Project**
+
 ```bash
 # run Python scripts (with uv)
 uv run part1_tensorflow.py
@@ -152,10 +171,27 @@ python3.13 part2_tflite_conversion.py  # Convert to TFLite
 ## Custom Kernel Modifications
 
 ### 1. Quantize Kernel (`tensorflow/tensorflow/lite/micro/kernels/quantize.cc`)
+
 - **Added**: Support for `kTfLiteUInt8` input type
 - **Added**: UInt8 to various output type conversions
 - **Added**: Int8 to UInt8 conversion support
 
 ### 2. StridedSlice Kernel (`tensorflow/tensorflow/lite/micro/kernels/strided_slice.cc`)
+
 - **Added**: Support for `kTfLiteInt32` output type
 
+## Screenshots of execution
+
+### **Part 1**
+
+![Part 1 - TensorFlow Model Training](pic/part1.png)
+
+### **Part 2**
+
+![Part 2 - TFLite Conversion (1)](pic/part2-1.png)
+![Part 2 - TFLite Conversion (2)](pic/part2-2.png)
+
+### **Part 3**
+
+![Part 3 - Micro Deployment (1)](pic/part3-1.png)
+![Part 3 - Micro Deployment (2)](pic/part3-2.png)
