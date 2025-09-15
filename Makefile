@@ -29,7 +29,7 @@ INCLUDES := \
 
 # Application source files
 APP_SRCS := \
-    model_inference.cc \
+    part3_micro_deployment.cc \
     model_data.cc
 
 # Core TFLM source files
@@ -71,22 +71,19 @@ KERNEL_SRCS := \
 ALL_SRCS := $(APP_SRCS) $(CORE_SRCS) $(KERNEL_SRCS)
 
 # Target executable
-TARGET := model_inference
+TARGET := part3_micro_deployment
 
 # Build target
-$(TARGET): check-dependencies $(APP_SRCS)
-
-# Build target
-$(TARGET): check-dependencies $(OBJ_FILES)
-	@echo "🔄 Building TensorFlow Lite Micro application..."
-	@echo "📝 Using TensorFlow Lite Micro v2.4.0 compatible build"
+$(TARGET): $(APP_SRCS)
+	@echo "Building TensorFlow Lite Micro application..."
+	@echo "Using TensorFlow Lite Micro v2.4.0 compatible build"
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(ALL_SRCS) -o $(TARGET) $(LDFLAGS)
-	@echo "✅ Build complete: $(TARGET)"
-	@echo "📊 Binary size: $$(ls -lh $(TARGET) | awk '{print $$5}')"
+	@echo "Build complete: $(TARGET)"
+	@echo "Binary size: $$(ls -lh $(TARGET) | awk '{print $$5}')"
 
 # Run the application
 run: $(TARGET)
-	@echo "🚀 Running TensorFlow Lite Micro inference..."
+	@echo "Running TensorFlow Lite Micro inference..."
 	./$(TARGET)
 
 # Clean generated files
@@ -94,4 +91,4 @@ clean:
 	rm -f $(TARGET)
 	@echo "Clean complete"
 
-.PHONY: all run clean check-dependencies info help
+.PHONY: all run clean
