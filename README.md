@@ -190,8 +190,10 @@ python3.13 part2_tflite_conversion.py  # Convert to TFLite
 
 ![Part 2 - TFLite Conversion (1)](pic/part2-1.png)
 ![Part 2 - TFLite Conversion (2)](pic/part2-2.png)
+![Part 2 - TFLite Conversion (3)](pic/part2-3.png)
 
 ### **Part 3**
 
 ![Part 3 - Micro Deployment (1)](pic/part3-1.png)
 ![Part 3 - Micro Deployment (2)](pic/part3-2.png)
+![Part 3 - Micro Deployment (3)](pic/part3-3.png)

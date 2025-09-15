@@ -1,5 +1,5 @@
 import tensorflow as tf
-from part1 import load_and_preprocess_data
+from part1_tensorflow import load_and_preprocess_data
 import os
 import numpy as np
 
