@@ -16,9 +16,9 @@
 
 ```
 MAIE5532Assignment1/
-├── README.md                    # This file
-├── Makefile                     # Build configuration
-├── model_inference.cc           # Main inference application
+├── README.md                   # This file
+├── Makefile                    # Build configuration
+├── part3_micro_deployment.cc   # Main inference application
 ├── model_data.cc               # MNIST model data (generated)
 ├── .gitignore                  # Git ignore patterns
 ├── requirements.txt            # Python dependencies (if any)
@@ -116,15 +116,15 @@ python3.13 -c "import tensorflow as tf; print('TensorFlow version:', tf.__versio
 
 ### 9. **Build and Run the Project**
 ```bash
-# Build the C++ application
-gmake
+# run Python scripts
+uv run part1_tensorflow.py
+uv run part2_tflite_conversion.py
 
-# Run the application
+# Build model_data.cc
+xxd -i mnist_model_quantized.tflite > model_data.cc
+
+# Run CC file
 gmake run
-
-# Or run Python scripts
-python3.13 part1_tensorflow.py
-python3.13 part2_tflite_conversion.py
 ```
 
 ## Quick Start
