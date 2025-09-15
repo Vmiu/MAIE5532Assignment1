@@ -15,7 +15,7 @@
 #include "tensorflow/lite/version.h"
 
 // Define constants and global variables
-const int kTensorArenaSize = 60 * 1024;
+const int kTensorArenaSize = 40 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
 
 // Include your model data
@@ -83,7 +83,7 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
     printf("Output type=%d scale=%.6f zp=%d bytes=%zu\n",
        output->type, output->params.scale, output->params.zero_point, output->bytes);
     if (input->bytes != input_size) {
-       printf("Input size mismatch: expected %zu, got %d\n", input_size, input->bytes);
+       printf("Input size mismatch: expected %zu, got %zu\n", input_size, input->bytes);
         return -1; // Error: size mismatch
     }
     if (output->type != kTfLiteUInt8) {
@@ -132,11 +132,16 @@ int run_inference(tflite::MicroInterpreter* interpreter, const uint8_t* input_da
 
  
 
-void create_test_image() {
-    // Load 5 sample from MNIST test set
+void create_test_image(uint8_t* test_image) {
+    // TODO: Create test image
+    memset(test_image, 0, 28 * 28);
 
-    // Normalize and quantize to uint8
-    // Store in test_image array
+    // draw a 0 in the center of the image
+    for (int i = 10; i < 18; i++) {
+        for (int j = 10; j < 18; j++) {
+            test_image[i * 28 + j] = 255;
+        }
+    }
 }
     
 
@@ -150,6 +155,7 @@ int main() {
         return 1;
     }
     // Create test input (28x28 image data)
+    uint8_t test_image[28 * 28];
     create_test_image(test_image);
 
     // Run inference
